@@ -18,6 +18,8 @@ type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
 }
 
+type requestCallback func(*http.Request)
+
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
@@ -29,6 +31,24 @@ func jsonToBody(json string) io.ReadCloser {
 func setup(responseStatusCode int, responseJson string) *Client {
 	HttpClient = &MockClient{}
 	GetDoFunc = func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: responseStatusCode,
+			Body:       jsonToBody(responseJson),
+		}, nil
+	}
+	config := ClientConfig{
+		HostUrl: AnyTestHostUrl,
+	}
+
+	c, _ := NewClient(&config)
+
+	return c
+}
+
+func setupWithCallback(responseStatusCode int, responseJson string, callback requestCallback) *Client {
+	HttpClient = &MockClient{}
+	GetDoFunc = func(req *http.Request) (*http.Response, error) {
+		callback(req)
 		return &http.Response{
 			StatusCode: responseStatusCode,
 			Body:       jsonToBody(responseJson),

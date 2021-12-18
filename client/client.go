@@ -91,3 +91,56 @@ func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCre
 
 	return nil
 }
+
+func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *AuthorizationCodeClientUpdate) error {
+	rb, err := json.Marshal(model)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), strings.NewReader(string(rb)))
+	if err != nil {
+		return err
+	}
+
+	_, err = c.doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) GetAuthorizationCodeClient(clientId string) (*AuthorizationCodeClient, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	acClient := AuthorizationCodeClient{}
+	err = json.Unmarshal(body, &acClient)
+	if err != nil {
+		return nil, err
+	}
+
+	return &acClient, nil
+}
