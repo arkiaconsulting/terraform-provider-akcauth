@@ -1,4 +1,4 @@
-package akcauth
+package client
 
 type AuthorizationCodeClientCreate struct {
 	ClientId      string   `json:"clientId"`

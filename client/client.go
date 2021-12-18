@@ -1,4 +1,4 @@
-package akcauth
+package client
 
 import (
 	"encoding/json"
