@@ -1,21 +1,27 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
 
 type ClientConfig struct {
-	HostUrl string
+	HostUrl    string
+	ResourceId string
 }
 
 type Client struct {
 	HostURL    string
 	HTTPClient HttpClientWrapper
+	ResourceId string
 	Token      string
 }
 
@@ -46,14 +52,38 @@ func NewClient(config *ClientConfig) (*Client, error) {
 	c := Client{
 		HTTPClient: HttpClient,
 		HostURL:    config.HostUrl,
-		Token:      "todo",
+		ResourceId: config.ResourceId,
 	}
 
 	return &c, nil
 }
 
+func authorizeRequest(req *http.Request, c *Client) error {
+	if c.Token == "" {
+		cred, err := azidentity.NewDefaultAzureCredential(nil)
+		if err != nil {
+			return fmt.Errorf("cannot get credential: %+v", err)
+		}
+
+		token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
+			Scopes: []string{c.ResourceId},
+		})
+		if err != nil {
+			return fmt.Errorf("cannot get Azure access token: %+v", err)
+		}
+		c.Token = token.Token
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+
+	return nil
+}
+
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-	req.Header.Set("Authorization", c.Token)
+	err := authorizeRequest(req, c)
+	if err != nil {
+		return nil, err
+	}
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {

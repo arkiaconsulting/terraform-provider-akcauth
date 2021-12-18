@@ -3,11 +3,14 @@ module terraform-provider-akcauth
 go 1.17
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.12.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/stretchr/testify v1.7.0
 )
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.20.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v0.8.3 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -36,15 +39,17 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.9.1 // indirect
-	golang.org/x/net v0.0.0-20210326060303-6b1517762897 // indirect
-	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20200711021454-869866162049 // indirect
 	google.golang.org/grpc v1.32.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
