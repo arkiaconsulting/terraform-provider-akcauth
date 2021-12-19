@@ -21,8 +21,16 @@ type ClientConfig struct {
 type Client struct {
 	HostURL    string
 	HTTPClient HttpClientWrapper
-	ResourceId string
-	Token      string
+	Authorizer RequestAuthorizer
+	Config     *ClientConfig
+}
+
+type AzureAuthorizer struct {
+	Token string
+}
+
+type RequestAuthorizer interface {
+	Authorize(req *http.Request, cfg *ClientConfig) error
 }
 
 type HttpClientWrapper interface {
@@ -31,12 +39,36 @@ type HttpClientWrapper interface {
 
 var (
 	HttpClient HttpClientWrapper
+	Authorizer RequestAuthorizer
 )
 
 func init() {
 	HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
 	}
+	Authorizer = &AzureAuthorizer{}
+}
+
+// Authorize using Azure
+func (a *AzureAuthorizer) Authorize(req *http.Request, cfg *ClientConfig) error {
+	if a.Token == "" {
+		cred, err := azidentity.NewDefaultAzureCredential(nil)
+		if err != nil {
+			return fmt.Errorf("cannot get credential: %+v", err)
+		}
+
+		token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
+			Scopes: []string{cfg.ResourceId},
+		})
+		if err != nil {
+			return fmt.Errorf("cannot get Azure access token: %+v", err)
+		}
+		a.Token = token.Token
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.Token))
+
+	return nil
 }
 
 // NewClient -
@@ -51,39 +83,15 @@ func NewClient(config *ClientConfig) (*Client, error) {
 
 	c := Client{
 		HTTPClient: HttpClient,
+		Authorizer: Authorizer,
 		HostURL:    config.HostUrl,
-		ResourceId: config.ResourceId,
+		Config:     config,
 	}
 
 	return &c, nil
 }
 
-func authorizeRequest(req *http.Request, c *Client) error {
-	if c.Token == "" {
-		cred, err := azidentity.NewDefaultAzureCredential(nil)
-		if err != nil {
-			return fmt.Errorf("cannot get credential: %+v", err)
-		}
-
-		token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
-			Scopes: []string{c.ResourceId},
-		})
-		if err != nil {
-			return fmt.Errorf("cannot get Azure access token: %+v", err)
-		}
-		c.Token = token.Token
-	}
-
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
-
-	return nil
-}
-
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
-	err := authorizeRequest(req, c)
-	if err != nil {
-		return nil, err
-	}
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -103,13 +111,29 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	return body, err
 }
 
-func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCreate) error {
+func (c *Client) prepareRequest(method string, url string, model interface{}) (*http.Request, error) {
 	rb, err := json.Marshal(model)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/clients", c.HostURL), strings.NewReader(string(rb)))
+	req, err := http.NewRequest(method, url, strings.NewReader(string(rb)))
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.Authorizer.Authorize(req, c.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	return req, nil
+}
+
+func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCreate) error {
+	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/api/clients", c.HostURL), model)
 	if err != nil {
 		return err
 	}
@@ -123,12 +147,7 @@ func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCre
 }
 
 func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *AuthorizationCodeClientUpdate) error {
-	rb, err := json.Marshal(model)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), strings.NewReader(string(rb)))
+	req, err := c.prepareRequest("POST", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), model)
 	if err != nil {
 		return err
 	}
@@ -142,7 +161,7 @@ func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *Authoriza
 }
 
 func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
 	if err != nil {
 		return err
 	}
@@ -156,7 +175,7 @@ func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
 }
 
 func (c *Client) GetAuthorizationCodeClient(clientId string) (*AuthorizationCodeClient, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ func Test_AuthorizationCodeClient_Create_ShouldPass(t *testing.T) {
 		assert.Equal(t, "PUT", req.Method)
 		assert.Equal(t, fmt.Sprintf("%s/api/clients", AnyTestHostUrl), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
-		assert.Equal(t, `{"clientId":"client id","clientName":"client name","allowedScopes":["basic","readwrite"],"redirectUris":["https://callback"]}`, string(requestContent))
+		assert.Equal(t, `{"clientId":"client-id","clientName":"client name","allowedScopes":["basic","readwrite"],"redirectUris":["https://callback"]}`, string(requestContent))
 		callbacked = true
 	})
 
