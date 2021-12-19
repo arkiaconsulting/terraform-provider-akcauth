@@ -13,7 +13,7 @@ import (
 func Test_Integration_ShouldPass(t *testing.T) {
 	config := ClientConfig{
 		HostUrl:    os.Getenv("AKC_AUTH_BASE_ADDRESS"),
-		ResourceId: os.Getenv("AKC_AUTH_RESOURCE_ID"),
+		ResourceId: os.Getenv("AKC_AUTH_AUDIENCE"),
 	}
 	clientId := "toto"
 	HttpClient = &http.Client{Timeout: 10 * time.Second}

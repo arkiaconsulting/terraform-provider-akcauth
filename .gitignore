@@ -1,2 +1,5 @@
 vendor
 .vscode
+.terraform
+*.tfstate
+*.tfstate.backup
