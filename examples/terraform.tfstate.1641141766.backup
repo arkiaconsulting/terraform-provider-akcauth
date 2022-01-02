@@ -1,0 +1,52 @@
+{
+  "version": 4,
+  "terraform_version": "1.1.0",
+  "serial": 31,
+  "lineage": "80b38d46-8794-17d6-65ee-39e6a6a5bebe",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "akcauth_api_scope",
+      "name": "basic_read",
+      "provider": "provider[\"github.com/arkiaconsulting/akcauth\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "basic.read",
+            "name": "basic.read"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "akcauth_authorization_code_client",
+      "name": "toto",
+      "provider": "provider[\"github.com/arkiaconsulting/akcauth\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "allowed_scopes": [
+              "toto.read",
+              "toto.write"
+            ],
+            "client_id": "toto",
+            "client_name": "toto name",
+            "enabled": true,
+            "id": "toto",
+            "redirect_uris": [
+              "https://callback"
+            ]
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        }
+      ]
+    }
+  ]
+}
