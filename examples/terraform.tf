@@ -18,3 +18,7 @@ resource "akcauth_authorization_code_client" "toto" {
   allowed_scopes = ["toto.read", "toto.write"]
   redirect_uris = ["https://callback"]
 }
+
+resource "akcauth_api_scope" "basic_read" {
+  name = "basic.read"
+}
