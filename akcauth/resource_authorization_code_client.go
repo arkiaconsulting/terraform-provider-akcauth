@@ -21,6 +21,7 @@ func resourceAuthorizationCodeClient() *schema.Resource {
 			"client_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"client_name": {
 				Type:     schema.TypeString,
