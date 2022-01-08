@@ -25,6 +25,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"akcauth_authorization_code_client": resourceAuthorizationCodeClient(),
 			"akcauth_api_scope":                 resourceApiScope(),
+			"akcauth_api_resource":              resourceApiResource(),
 		},
 		DataSourcesMap:       map[string]*schema.Resource{},
 		ConfigureContextFunc: providerConfigure,
