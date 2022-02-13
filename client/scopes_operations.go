@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func (c *Client) CreateApiScope(model *ApiScopeCreate) error {
-	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/api/scopes", c.HostURL), model)
+func (c *Client) CreateApiScope(name string, model *ApiScopeCreate) error {
+	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/api/scopes/%s", c.HostURL, name), model)
 	if err != nil {
 		return err
 	}

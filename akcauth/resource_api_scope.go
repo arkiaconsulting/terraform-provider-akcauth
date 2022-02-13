@@ -32,12 +32,27 @@ func resourceApiScopeCreate(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 
 	scopeName := d.Get("name").(string)
+	displayName := d.Get("display_name").(string)
+	description := d.Get("description").(string)
+	showInDiscoveryDocument := d.Get("show_in_discovery").(bool)
+	userClaims := d.Get("user_claims").([]string)
+	properties := d.Get("properties").(map[string]string)
+	enabled := d.Get("enabled").(bool)
+	required := d.Get("required").(bool)
+	emphasize := d.Get("emphasize").(bool)
 
 	model := client.ApiScopeCreate{
-		Name: scopeName,
+		DisplayName:             displayName,
+		Description:             description,
+		ShowInDiscoveryDocument: showInDiscoveryDocument,
+		UserClaims:              userClaims,
+		Properties:              properties,
+		Enabled:                 enabled,
+		Required:                required,
+		Emphasize:               emphasize,
 	}
 
-	err := c.CreateApiScope(&model)
+	err := c.CreateApiScope(scopeName, &model)
 	if err != nil {
 		return diag.FromErr(err)
 	}

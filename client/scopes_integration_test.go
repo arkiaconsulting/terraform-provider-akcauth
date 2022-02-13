@@ -21,9 +21,18 @@ func Test_Scopes_Integration_ShouldPass(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 
-	err = c.CreateApiScope(&ApiScopeCreate{
-		Name: scopeName,
-	})
+	apiScope := ApiScopeCreate{
+		DisplayName:             "display-name",
+		Description:             "description",
+		ShowInDiscoveryDocument: true,
+		UserClaims:              []string{"given_name"},
+		Properties:              map[string]string{"prop": "value"},
+		Enabled:                 true,
+		Required:                true,
+		Emphasize:               false,
+	}
+
+	err = c.CreateApiScope(scopeName, &apiScope)
 	if err != nil {
 		t.Logf("Scope creation resulted in '%s'", err.Error())
 	}
@@ -34,6 +43,14 @@ func Test_Scopes_Integration_ShouldPass(t *testing.T) {
 	}
 
 	assert.Equal(t, scopeName, myScope.Name)
+	assert.Equal(t, apiScope.DisplayName, myScope.DisplayName)
+	assert.Equal(t, apiScope.Description, myScope.Description)
+	assert.Equal(t, apiScope.ShowInDiscoveryDocument, myScope.ShowInDiscoveryDocument)
+	assert.Equal(t, apiScope.UserClaims, myScope.UserClaims)
+	assert.Equal(t, apiScope.Properties, myScope.Properties)
+	assert.Equal(t, apiScope.Enabled, myScope.Enabled)
+	assert.Equal(t, apiScope.Required, myScope.Required)
+	assert.Equal(t, apiScope.Emphasize, myScope.Emphasize)
 
 	err = c.DeleteApiScope(scopeName)
 	assert.Nil(t, err)
