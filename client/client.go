@@ -11,11 +11,18 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type ClientConfig struct {
-	HostUrl    string
-	ResourceId string
+	HostUrl           string
+	ResourceId        string
+	ClientId          string
+	ClientSecret      string
+	AuthorizationType string
+	Scopes            []string
+	BasePath          string
 }
 
 type Client struct {
@@ -25,7 +32,7 @@ type Client struct {
 	Config     *ClientConfig
 }
 
-type AzureAuthorizer struct {
+type TokenProvider struct {
 	Token string
 }
 
@@ -46,27 +53,45 @@ func init() {
 	HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
 	}
-	Authorizer = &AzureAuthorizer{}
+	Authorizer = &TokenProvider{}
 }
 
 // Authorize using Azure
-func (a *AzureAuthorizer) Authorize(req *http.Request, cfg *ClientConfig) error {
-	if a.Token == "" {
-		cred, err := azidentity.NewDefaultAzureCredential(nil)
-		if err != nil {
-			return fmt.Errorf("cannot get credential: %+v", err)
-		}
+func (tokenProvider *TokenProvider) Authorize(req *http.Request, cfg *ClientConfig) error {
+	if tokenProvider.Token == "" {
+		if cfg.AuthorizationType == "azure" {
+			cred, err := azidentity.NewDefaultAzureCredential(nil)
+			if err != nil {
+				return fmt.Errorf("cannot get credential: %+v", err)
+			}
 
-		token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
-			Scopes: []string{cfg.ResourceId},
-		})
-		if err != nil {
-			return fmt.Errorf("cannot get Azure access token: %+v", err)
+			token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
+				Scopes: []string{cfg.ResourceId},
+			})
+			if err != nil {
+				return fmt.Errorf("cannot get Azure access token: %+v", err)
+			}
+			tokenProvider.Token = token.Token
+		} else if cfg.AuthorizationType == "client_credentials" {
+			conf := clientcredentials.Config{
+				ClientID:     cfg.ClientId,
+				ClientSecret: cfg.ClientSecret,
+				TokenURL:     fmt.Sprintf("%s/connect/token", cfg.HostUrl),
+				Scopes:       cfg.Scopes,
+			}
+
+			token, err := conf.Token(context.Background())
+			if err != nil {
+				return fmt.Errorf("cannot get access token using client credentials: %+v", err)
+			}
+
+			tokenProvider.Token = token.AccessToken
+		} else {
+			return fmt.Errorf("cannot get access token using authorization type: %+v", cfg.AuthorizationType)
 		}
-		a.Token = token.Token
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.Token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tokenProvider.Token))
 
 	return nil
 }
@@ -133,7 +158,7 @@ func (c *Client) prepareRequest(method string, url string, model interface{}) (*
 }
 
 func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCreate) error {
-	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/api/clients", c.HostURL), model)
+	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/%s/clients", c.HostURL, c.Config.BasePath), model)
 	if err != nil {
 		return err
 	}
@@ -147,7 +172,7 @@ func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCre
 }
 
 func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *AuthorizationCodeClientUpdate) error {
-	req, err := c.prepareRequest("POST", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), model)
+	req, err := c.prepareRequest("POST", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), model)
 	if err != nil {
 		return err
 	}
@@ -161,7 +186,7 @@ func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *Authoriza
 }
 
 func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
-	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
 	if err != nil {
 		return err
 	}
@@ -175,7 +200,7 @@ func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
 }
 
 func (c *Client) GetAuthorizationCodeClient(clientId string) (*AuthorizationCodeClient, error) {
-	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/api/clients/%s", c.HostURL, clientId), nil)
+	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
 	if err != nil {
 		return nil, err
 	}

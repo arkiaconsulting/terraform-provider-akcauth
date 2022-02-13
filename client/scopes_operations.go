@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) CreateApiScope(name string, model *ApiScopeCreate) error {
-	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/api/scopes/%s", c.HostURL, name), model)
+	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/%s/scopes/%s", c.HostURL, c.Config.BasePath, name), model)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (c *Client) CreateApiScope(name string, model *ApiScopeCreate) error {
 }
 
 func (c *Client) GetApiScope(scopeName string) (*ApiScope, error) {
-	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/api/scopes/%s", c.HostURL, scopeName), nil)
+	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/%s/scopes/%s", c.HostURL, c.Config.BasePath, scopeName), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (c *Client) GetApiScope(scopeName string) (*ApiScope, error) {
 }
 
 func (c *Client) DeleteApiScope(scopeName string) error {
-	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/api/scopes/%s", c.HostURL, scopeName), nil)
+	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/%s/scopes/%s", c.HostURL, c.Config.BasePath, scopeName), nil)
 	if err != nil {
 		return err
 	}

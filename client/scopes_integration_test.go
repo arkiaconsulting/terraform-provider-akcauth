@@ -9,10 +9,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Scopes_Integration_ShouldPass(t *testing.T) {
+func Test_Scopes_Integration_ClientCredentials_ShouldPass(t *testing.T) {
 	config := ClientConfig{
-		HostUrl:    os.Getenv("AKC_AUTH_BASE_ADDRESS"),
-		ResourceId: os.Getenv("AKC_AUTH_AUDIENCE"),
+		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
+		AuthorizationType: "client_credentials",
+		ClientId:          "client",
+		ClientSecret:      "secret",
+		Scopes:            []string{"IdentityServerApi"},
+		BasePath:          "my",
 	}
 	scopeName := "basic.read"
 	HttpClient = &http.Client{Timeout: 10 * time.Second}

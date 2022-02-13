@@ -52,6 +52,7 @@ func setup(responseStatusCode int, responseJson string) *Client {
 	config := ClientConfig{
 		HostUrl:    AnyTestHostUrl,
 		ResourceId: "any",
+		BasePath:   "testpath",
 	}
 
 	c, _ := NewClient(&config)
@@ -75,6 +76,7 @@ func setupWithCallback(responseStatusCode int, responseJson string, callback req
 	config := ClientConfig{
 		HostUrl:    AnyTestHostUrl,
 		ResourceId: "any",
+		BasePath:   "testpath",
 	}
 
 	c, _ := NewClient(&config)
