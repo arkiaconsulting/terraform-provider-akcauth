@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"terraform-provider-akcauth/acceptance"
-	"terraform-provider-akcauth/client"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -111,9 +110,7 @@ func testAccCheckApiScopeResourceExist(t *testing.T, resourceName string) resour
 
 		scopeName := rs.Primary.Attributes["name"]
 
-		c := testAccProvider.Meta().(*client.Client)
-
-		_, err := c.GetApiScope(scopeName)
+		_, err := getTestClient().GetApiScope(scopeName)
 		if err != nil {
 			return err
 		}
@@ -126,15 +123,13 @@ func testAccCheckApiScopeDestroy(t *testing.T) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		log.Print("[INFO] Ensure that all the Api scope resources were destroyed")
 
-		c := testAccProvider.Meta().(*client.Client)
-
 		for name, rs := range s.RootModule().Resources {
 			if rs.Type != "akcauth_api_scope" {
 				continue
 			}
 
 			scopeName := rs.Primary.ID
-			_, err := c.GetApiScope(scopeName)
+			_, err := getTestClient().GetApiScope(scopeName)
 			if err == nil {
 				return fmt.Errorf("The Api scope with name '%s' still exists. (%s)", scopeName, name)
 			}
@@ -158,9 +153,8 @@ func testAccCheckApiScopeDisappears(resourceName string) resource.TestCheckFunc 
 		}
 
 		apiScopeName := resourceState.Primary.ID
-		c := testAccProvider.Meta().(*client.Client)
 
-		err := c.DeleteApiScope(apiScopeName)
+		err := getTestClient().DeleteApiScope(apiScopeName)
 		if err != nil {
 			return fmt.Errorf("We were unable to delete the remote Api scope '%s'", apiScopeName)
 		}
