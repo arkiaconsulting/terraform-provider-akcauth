@@ -9,15 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-
 	"golang.org/x/oauth2/clientcredentials"
 )
 
 type ClientConfig struct {
 	HostUrl           string
-	ResourceId        string
 	ClientId          string
 	ClientSecret      string
 	AuthorizationType string
@@ -66,23 +62,10 @@ func init() {
 	Authorizer = &TokenProvider{}
 }
 
-// Authorize using Azure
+// Authorize the client
 func (tokenProvider *TokenProvider) Authorize(req *http.Request, cfg *ClientConfig) error {
 	if tokenProvider.Token == "" {
-		if cfg.AuthorizationType == "azure" {
-			cred, err := azidentity.NewDefaultAzureCredential(nil)
-			if err != nil {
-				return fmt.Errorf("cannot get credential: %+v", err)
-			}
-
-			token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
-				Scopes: []string{cfg.ResourceId},
-			})
-			if err != nil {
-				return fmt.Errorf("cannot get Azure access token: %+v", err)
-			}
-			tokenProvider.Token = token.Token
-		} else if cfg.AuthorizationType == "client_credentials" {
+		if cfg.AuthorizationType == "client_credentials" {
 			conf := clientcredentials.Config{
 				ClientID:     cfg.ClientId,
 				ClientSecret: cfg.ClientSecret,
@@ -173,7 +156,8 @@ func (c *Client) prepareRequest(method string, url string, model interface{}) (*
 }
 
 func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCreate) error {
-	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/%s/clients", c.HostURL, c.Config.BasePath), model)
+	req, err := c.prepareRequest("PUT",
+		fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, model.ClientId), model)
 	if err != nil {
 		return err
 	}

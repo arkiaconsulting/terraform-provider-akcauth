@@ -3,24 +3,17 @@ module terraform-provider-akcauth
 go 1.18
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.23.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.14.0
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.13.0
 	github.com/stretchr/testify v1.7.0
 )
 
 require (
-	github.com/AzureAD/microsoft-authentication-library-for-go v0.4.0 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/google/uuid v1.3.0 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v4 v4.3.12 // indirect
 	github.com/vmihailenco/tagparser v0.1.2 // indirect
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/internal v0.9.2 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
@@ -54,7 +47,6 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/zclconf/go-cty v1.10.0 // indirect

@@ -3,6 +3,7 @@ package client
 import (
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,8 +13,12 @@ import (
 
 func Test_Integration_ShouldPass(t *testing.T) {
 	config := ClientConfig{
-		HostUrl:    os.Getenv("AKC_AUTH_BASE_ADDRESS"),
-		ResourceId: os.Getenv("AKC_AUTH_AUDIENCE"),
+		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
+		BasePath:          os.Getenv("AKC_AUTH_BASE_PATH"),
+		AuthorizationType: os.Getenv("AKC_AUTH_AUTHORIZATION_TYPE"),
+		ClientId:          os.Getenv("AKC_AUTH_CLIENT_ID"),
+		ClientSecret:      os.Getenv("AKC_AUTH_CLIENT_SECRET"),
+		Scopes:            strings.Split(os.Getenv("AKC_AUTH_SCOPES"), " "),
 	}
 	clientId := "toto"
 	HttpClient = &http.Client{Timeout: 10 * time.Second}
@@ -27,7 +32,7 @@ func Test_Integration_ShouldPass(t *testing.T) {
 		ClientName: "client name",
 	})
 	if err != nil {
-		t.Logf("Client creation resulted in '%s'", err.Error())
+		t.Fatalf("Client creation resulted in '%s'", err.Error())
 	}
 
 	myClient, err := c.GetAuthorizationCodeClient(clientId)
