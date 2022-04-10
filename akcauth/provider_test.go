@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"terraform-provider-akcauth/acceptance"
 	"terraform-provider-akcauth/client"
 	"testing"
 
@@ -84,4 +85,16 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("AKC_AUTH_SCOPES"); v == "" {
 		t.Fatal("the AKC_AUTH_SCOPES environment variable must be set for acceptance tests")
 	}
+}
+
+func base(data acceptance.TestData) string {
+	return `
+provider "akcauth" {
+	api_base_path = "/my"
+	authorization_type = "client_credentials"
+	client_id = "client"
+	client_secret = "secret"
+	scopes = [ "IdentityServerApi" ]
+}
+`
 }
