@@ -2,7 +2,6 @@ package akcauth
 
 import (
 	"context"
-	"log"
 	"terraform-provider-akcauth/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -18,8 +17,9 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_BASE_ADDRESS", nil),
 			},
 			"api_base_path": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_BASE_PATH", "/"),
 			},
 			"azuread_audience": {
 				Type:        schema.TypeString,
@@ -27,17 +27,20 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_AUDIENCE", nil),
 			},
 			"authorization_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_AUTHORIZATION_TYPE", "client_credentials"),
 			},
 			"client_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_CLIENT_ID", nil),
 			},
 			"client_secret": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				DefaultFunc: schema.EnvDefaultFunc("AKC_AUTH_CLIENT_SECRET", nil),
 			},
 			"scopes": {
 				Type:     schema.TypeList,
@@ -59,7 +62,6 @@ func Provider() *schema.Provider {
 
 func providerConfigure() func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		log.Print("[INFO] Configuring the provider")
 
 		serverBaseUrl := d.Get("server_url").(string)
 		apiBasePath := d.Get("api_base_path").(string)
@@ -76,7 +78,7 @@ func providerConfigure() func(context.Context, *schema.ResourceData) (interface{
 
 		var diags diag.Diagnostics
 
-		if (serverBaseUrl == "") || (audience == "") {
+		if serverBaseUrl == "" {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Unable to create client",

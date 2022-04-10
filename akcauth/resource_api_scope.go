@@ -70,7 +70,7 @@ func resourceApiScope() *schema.Resource {
 }
 
 func resourceApiScopeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	log.Printf("[INFO] Creating Api scope (%s)", d.Id())
+	log.Printf("[INFO] Creating Api scope (%s)", d.Get("name"))
 
 	c := m.(*client.Client)
 
