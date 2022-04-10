@@ -73,18 +73,6 @@ func TestAccApiScope_NoLongerExists(t *testing.T) {
 	})
 }
 
-func (r ApiScopeResource) base(data acceptance.TestData) string {
-	return `
-provider "akcauth" {
-	api_base_path = "/my"
-	authorization_type = "client_credentials"
-	client_id = "client"
-	client_secret = "secret"
-	scopes = [ "IdentityServerApi" ]
-}
-`
-}
-
 func (r ApiScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
@@ -92,7 +80,7 @@ func (r ApiScopeResource) basic(data acceptance.TestData) string {
 	resource "akcauth_api_scope" "basic_read" {
 		name = "acctest-apiscope-%d"
 	}
-	`, r.base(data), data.RandomInteger)
+	`, base(data), data.RandomInteger)
 }
 
 func testAccCheckApiScopeResourceExist(t *testing.T, resourceName string) resource.TestCheckFunc {
