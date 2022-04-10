@@ -15,9 +15,9 @@ func TestAccAuthorizationCodeClient_EnsureAttributes(t *testing.T) {
 	data := randomAuthorizationCodeClient()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAuthorizationCodeClientResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAuthorizationCodeClientResource_full(data),
@@ -39,9 +39,9 @@ func TestAccAuthorizationCodeClient_EnabledByDefault(t *testing.T) {
 	data := randomAuthorizationCodeClient()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAuthorizationCodeClientResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAuthorizationCodeClientResource_full(data),
@@ -58,9 +58,9 @@ func TestAccAuthorizationCodeClient_CanBeImported(t *testing.T) {
 	data := randomAuthorizationCodeClient()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAuthorizationCodeClientResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAuthorizationCodeClientResource_full(data),
