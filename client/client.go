@@ -49,6 +49,16 @@ var (
 	Authorizer RequestAuthorizer
 )
 
+type ClientError struct {
+	Status  int
+	Message string
+	Err     error
+}
+
+func (m *ClientError) Error() string {
+	return m.Message
+}
+
 func init() {
 	HttpClient = &http.Client{
 		Timeout: 10 * time.Second,
@@ -122,6 +132,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
@@ -130,7 +141,11 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	}
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNoContent && res.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, body)
+		return body, &ClientError{
+			Status:  res.StatusCode,
+			Message: res.Status,
+			Err:     nil,
+		}
 	}
 
 	return body, err

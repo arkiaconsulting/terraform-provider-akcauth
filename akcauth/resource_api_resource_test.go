@@ -15,9 +15,9 @@ func TestAccApiResource_EnsureAttributes(t *testing.T) {
 	data := randomApiResource()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckApiResourceResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccApiResourceResource_full(data),
@@ -37,9 +37,9 @@ func TestAccApiResource_Update(t *testing.T) {
 	data := randomApiResource()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckApiResourceResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccApiResourceResource_full(data),
@@ -67,9 +67,9 @@ func TestAccApiResource_CanBeImported(t *testing.T) {
 	data := randomApiResource()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckApiResourceResourceDestroy(t),
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccApiResourceResource_full(data),

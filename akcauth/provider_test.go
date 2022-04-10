@@ -1,20 +1,27 @@
 package akcauth
 
 import (
+	"log"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]*schema.Provider
-var testAccProvider *schema.Provider
+var testAccProvider *schema.Provider = Provider()
+
+var testAccProviders = testAccProvidersFactory()
+
+func testAccProvidersFactory() map[string]func() (*schema.Provider, error) {
+	return map[string]func() (*schema.Provider, error){
+		"akcauth": func() (*schema.Provider, error) {
+			return testAccProvider, nil
+		},
+	}
+}
 
 func init() {
-	testAccProvider = Provider()
-	testAccProviders = map[string]*schema.Provider{
-		"akcauth": testAccProvider,
-	}
+	log.Print("[INFO] Initializing the test provider")
 }
 
 func TestProvider(t *testing.T) {
