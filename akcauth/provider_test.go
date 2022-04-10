@@ -3,6 +3,7 @@ package akcauth
 import (
 	"log"
 	"os"
+	"strings"
 	"terraform-provider-akcauth/client"
 	"testing"
 
@@ -35,17 +36,19 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func getTestClient() *client.Client {
+	log.Print("[INFO] Creating test client")
+
 	scopes := make([]string, 1)
 	scopes[0] = "IdentityServerApi"
 
 	config := client.ClientConfig{
 		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
-		BasePath:          "/my",
+		BasePath:          os.Getenv("AKC_AUTH_BASE_PATH"),
 		ResourceId:        os.Getenv("AKC_AUTH_AUDIENCE"),
-		AuthorizationType: "client_credentials",
-		ClientId:          "client",
-		ClientSecret:      "secret",
-		Scopes:            scopes,
+		AuthorizationType: os.Getenv("AKC_AUTH_AUTHORIZATION_TYPE"),
+		ClientId:          os.Getenv("AKC_AUTH_CLIENT_ID"),
+		ClientSecret:      os.Getenv("AKC_AUTH_CLIENT_SECRET"),
+		Scopes:            strings.Split(" ", os.Getenv("AKC_AUTH_SCOPES")),
 	}
 
 	c, err := client.NewClient(&config)
@@ -57,11 +60,29 @@ func getTestClient() *client.Client {
 }
 
 func testAccPreCheck(t *testing.T) {
+	log.Print("[INFO] Checking test pre-requisites")
+
 	if v := os.Getenv("AKC_AUTH_BASE_ADDRESS"); v == "" {
 		t.Fatal("the AKC_AUTH_BASE_ADDRESS environment variable must be set for acceptance tests")
 	}
 
-	if v := os.Getenv("AKC_AUTH_AUDIENCE"); v == "" {
-		t.Fatal("the AKC_AUTH_AUDIENCE environment variable must be set for acceptance tests")
+	if v := os.Getenv("AKC_AUTH_BASE_PATH"); v == "" {
+		t.Fatal("the AKC_AUTH_BASE_PATH environment variable must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("AKC_AUTH_AUTHORIZATION_TYPE"); v == "" {
+		t.Fatal("the AKC_AUTH_AUTHORIZATION_TYPE environment variable must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("AKC_AUTH_CLIENT_ID"); v == "" {
+		t.Fatal("the AKC_AUTH_CLIENT_ID environment variable must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("AKC_AUTH_CLIENT_SECRET"); v == "" {
+		t.Fatal("the AKC_AUTH_CLIENT_SECRET environment variable must be set for acceptance tests")
+	}
+
+	if v := os.Getenv("AKC_AUTH_SCOPES"); v == "" {
+		t.Fatal("the AKC_AUTH_SCOPES environment variable must be set for acceptance tests")
 	}
 }
