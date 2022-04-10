@@ -65,7 +65,6 @@ func providerConfigure() func(context.Context, *schema.ResourceData) (interface{
 
 		serverBaseUrl := d.Get("server_url").(string)
 		apiBasePath := d.Get("api_base_path").(string)
-		audience := d.Get("azuread_audience").(string)
 		authorizationType := d.Get("authorization_type").(string)
 		clientId := d.Get("client_id").(string)
 		clientSecret := d.Get("client_secret").(string)
@@ -90,7 +89,6 @@ func providerConfigure() func(context.Context, *schema.ResourceData) (interface{
 
 		config := client.ClientConfig{
 			HostUrl:           serverBaseUrl,
-			ResourceId:        audience,
 			AuthorizationType: authorizationType,
 			ClientId:          clientId,
 			ClientSecret:      clientSecret,

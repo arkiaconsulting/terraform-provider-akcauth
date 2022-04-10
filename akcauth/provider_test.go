@@ -44,7 +44,6 @@ func getTestClient() *client.Client {
 	config := client.ClientConfig{
 		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
 		BasePath:          os.Getenv("AKC_AUTH_BASE_PATH"),
-		ResourceId:        os.Getenv("AKC_AUTH_AUDIENCE"),
 		AuthorizationType: os.Getenv("AKC_AUTH_AUTHORIZATION_TYPE"),
 		ClientId:          os.Getenv("AKC_AUTH_CLIENT_ID"),
 		ClientSecret:      os.Getenv("AKC_AUTH_CLIENT_SECRET"),
