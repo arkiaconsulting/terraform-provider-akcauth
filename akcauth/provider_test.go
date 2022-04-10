@@ -3,19 +3,19 @@ package akcauth
 import (
 	"log"
 	"os"
+	"terraform-provider-akcauth/client"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 var testAccProvider *schema.Provider = Provider()
-
 var testAccProviders = testAccProvidersFactory()
 
 func testAccProvidersFactory() map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
 		"akcauth": func() (*schema.Provider, error) {
-			return testAccProvider, nil
+			return Provider(), nil
 		},
 	}
 }
@@ -32,6 +32,28 @@ func TestProvider(t *testing.T) {
 
 func TestProvider_impl(t *testing.T) {
 	var _ *schema.Provider = Provider()
+}
+
+func getTestClient() *client.Client {
+	scopes := make([]string, 1)
+	scopes[0] = "IdentityServerApi"
+
+	config := client.ClientConfig{
+		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
+		BasePath:          "/my",
+		ResourceId:        os.Getenv("AKC_AUTH_AUDIENCE"),
+		AuthorizationType: "client_credentials",
+		ClientId:          "client",
+		ClientSecret:      "secret",
+		Scopes:            scopes,
+	}
+
+	c, err := client.NewClient(&config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return c
 }
 
 func testAccPreCheck(t *testing.T) {
