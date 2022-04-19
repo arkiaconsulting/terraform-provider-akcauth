@@ -2,17 +2,19 @@ package akcauth
 
 import (
 	"fmt"
-	"strings"
-	"terraform-provider-akcauth/client"
+	"log"
+	"terraform-provider-akcauth/acceptance"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+type ClientResource struct{}
+
 func TestAccAuthorizationCodeClient_EnsureAttributes(t *testing.T) {
-	data := randomAuthorizationCodeClient()
+	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
+	r := ClientResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -20,23 +22,19 @@ func TestAccAuthorizationCodeClient_EnsureAttributes(t *testing.T) {
 		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAuthorizationCodeClientResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "client_id", data.ClientId),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "client_name", data.ClientName),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "allowed_scopes.0", data.AllowedScopes[0]),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "allowed_scopes.1", data.AllowedScopes[1]),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "redirect_uris.0", data.RedirectUris[0]),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "redirect_uris.1", data.RedirectUris[1]),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAuthorizationCodeClient_EnabledByDefault(t *testing.T) {
-	data := randomAuthorizationCodeClient()
+func TestAccAuthorizationCodeClient_Update_ClientName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
+	r := ClientResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -44,18 +42,25 @@ func TestAccAuthorizationCodeClient_EnabledByDefault(t *testing.T) {
 		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAuthorizationCodeClientResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "enabled", "true"),
+				),
+			},
+			{
+				Config: r.nameUpdate(data, "new-client-name"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "client_name", "new-client-name"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAuthorizationCodeClient_CanBeImported(t *testing.T) {
-	data := randomAuthorizationCodeClient()
+func TestAccAuthorizationCodeClient_Update_Disable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
+	r := ClientResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -63,49 +68,82 @@ func TestAccAuthorizationCodeClient_CanBeImported(t *testing.T) {
 		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAuthorizationCodeClientResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
 				),
 			},
 			{
-				ResourceName:      "akcauth_authorization_code_client.my_client",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: r.disable(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "enabled", "false"),
+				),
 			},
 		},
 	})
 }
 
-func testAccAuthorizationCodeClientResource_full(data *AuthorizationCodeClientTestData) string {
-	return fmt.Sprintf(`
-provider "akcauth" {}
+func TestAccAuthorizationCodeClient_NoLongerExists(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
+	r := ClientResource{}
 
-resource "akcauth_authorization_code_client" "my_client" {
-	client_id = "%s"
-	client_name = "%s"
-	allowed_scopes = [ "%s" ]
-	redirect_uris = [ "%s" ]
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientDisappears("akcauth_authorization_code_client.my_client"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
-`, data.ClientId, data.ClientName, strings.Join(data.AllowedScopes, `","`), strings.Join(data.RedirectUris, `","`))
+
+func TestAccAuthorizationCodeClient_RequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
+	r := ClientResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckAuthorizationCodeClientResourceDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+				),
+			},
+			{
+				Config:      r.requiresImport(data),
+				ExpectError: RequiresImportError("akcauth_authorization_code_client"),
+			},
+		},
+	})
 }
 
 func testAccCheckAuthorizationCodeClientResourceExist(t *testing.T, resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		c := testAccProvider.Meta().(*client.Client)
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		log.Printf("[INFO] Ensure that the authorization code client (%s) exists", rs.Primary.ID)
+
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No ID is set")
 		}
 
-		clientId := rs.Primary.Attributes["client_id"]
+		clientId := rs.Primary.ID
 
-		_, err := c.GetAuthorizationCodeClient(clientId)
+		_, err := getTestClient().GetAuthorizationCodeClient(clientId)
 		if err != nil {
 			return err
 		}
@@ -116,7 +154,7 @@ func testAccCheckAuthorizationCodeClientResourceExist(t *testing.T, resourceName
 
 func testAccCheckAuthorizationCodeClientResourceDestroy(t *testing.T) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
-		c := testAccProvider.Meta().(*client.Client)
+		log.Print("[INFO] Ensure that all the client resources were destroyed")
 
 		for name, rs := range s.RootModule().Resources {
 			if rs.Type != "akcauth_authorization_code_client" {
@@ -124,7 +162,7 @@ func testAccCheckAuthorizationCodeClientResourceDestroy(t *testing.T) func(s *te
 			}
 
 			clientId := rs.Primary.ID
-			_, err := c.GetAuthorizationCodeClient(clientId)
+			_, err := getTestClient().GetAuthorizationCodeClient(clientId)
 			if err == nil {
 				return fmt.Errorf("The authorization code client with client Id '%s' still exists. (%s)", clientId, name)
 			}
@@ -134,26 +172,82 @@ func testAccCheckAuthorizationCodeClientResourceDestroy(t *testing.T) func(s *te
 	}
 }
 
-type AuthorizationCodeClientTestData struct {
-	ClientId      string
-	ClientName    string
-	AllowedScopes []string
-	RedirectUris  []string
+func (r ClientResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+	
+	resource "akcauth_authorization_code_client" "my_client" {
+		client_id = "client-%d"
+		client_name = "name-%d"
+		allowed_scopes = [ "scope-%d" ]
+		redirect_uris = [ "https://host/callback-%d" ]
+		enabled = true
+	}
+	`, base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func randomAuthorizationCodeClient() *AuthorizationCodeClientTestData {
-	data := AuthorizationCodeClientTestData{
-		ClientId:      acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum),
-		ClientName:    acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum),
-		AllowedScopes: make([]string, 2),
-		RedirectUris:  make([]string, 2),
+func (r ClientResource) nameUpdate(data acceptance.TestData, name string) string {
+	return fmt.Sprintf(`
+	%s
+	
+	resource "akcauth_authorization_code_client" "my_client" {
+		client_id = "client-%d"
+		client_name = "%s"
+		allowed_scopes = [ "scope-%d" ]
+		redirect_uris = [ "https://host/callback-%d" ]
+		enabled = true
 	}
+	`, base(data), data.RandomInteger, name, data.RandomInteger, data.RandomInteger)
+}
 
-	data.AllowedScopes[0] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	data.AllowedScopes[1] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+func (r ClientResource) disable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+	
+	resource "akcauth_authorization_code_client" "my_client" {
+		client_id = "client-%d"
+		client_name = "name-%d"
+		allowed_scopes = [ "scope-%d" ]
+		redirect_uris = [ "https://host/callback-%d" ]
+		enabled = false
+	}
+	`, base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
 
-	data.RedirectUris[0] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	data.RedirectUris[1] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
+func (r ClientResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
 
-	return &data
+	resource "akcauth_authorization_code_client" "import" {
+		client_id = akcauth_authorization_code_client.my_client.client_id
+		client_name = akcauth_authorization_code_client.my_client.client_name
+		allowed_scopes = akcauth_authorization_code_client.my_client.allowed_scopes
+		redirect_uris = akcauth_authorization_code_client.my_client.redirect_uris
+		enabled = akcauth_authorization_code_client.my_client.enabled
+	}
+	`, r.basic(data))
+}
+
+func testAccCheckAuthorizationCodeClientDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		log.Printf("[INFO] Test is manually deleting the authorization code client (%s)", resourceName)
+		resourceState, ok := s.RootModule().Resources[resourceName]
+
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
+
+		if resourceState.Primary.ID == "" {
+			return fmt.Errorf("resource ID missing: %s", resourceName)
+		}
+
+		clientId := resourceState.Primary.ID
+
+		err := getTestClient().DeleteAuthorizationCodeClient(clientId)
+		if err != nil {
+			return fmt.Errorf("We were unable to delete the remote authorization code client '%s'", clientId)
+		}
+
+		return nil
+	}
 }

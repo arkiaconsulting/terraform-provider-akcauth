@@ -1,8 +1,10 @@
 package akcauth
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"terraform-provider-akcauth/acceptance"
 	"terraform-provider-akcauth/client"
@@ -37,7 +39,7 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func getTestClient() *client.Client {
-	log.Print("[INFO] Creating test client")
+	log.Print("[INFO] Creating test Api client")
 
 	scopes := make([]string, 1)
 	scopes[0] = "IdentityServerApi"
@@ -97,4 +99,9 @@ provider "akcauth" {
 	scopes = [ "IdentityServerApi" ]
 }
 `
+}
+
+func RequiresImportError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
