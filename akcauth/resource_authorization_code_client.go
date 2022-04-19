@@ -2,6 +2,9 @@ package akcauth
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"net/http"
 	"terraform-provider-akcauth/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -41,6 +44,13 @@ func resourceAuthorizationCodeClient() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"allowed_grant_types": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -51,11 +61,23 @@ func resourceAuthorizationCodeClient() *schema.Resource {
 }
 
 func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	clientId := d.Get("client_id").(string)
+	log.Printf("[INFO] Creating resource (%s)", clientId)
+
 	c := m.(*client.Client)
 
 	var diags diag.Diagnostics
 
-	clientId := d.Get("client_id").(string)
+	existing, err := c.GetAuthorizationCodeClient(clientId)
+	if err != nil {
+		cErr, ok := err.(*client.ClientError)
+		if !ok || (ok && cErr.Status != http.StatusBadRequest) {
+			return diag.FromErr(fmt.Errorf("checking for presence of existing %s: %+v", clientId, err))
+		}
+	} else {
+		return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", existing.ClientId, "akcauth_authorization_code_client"))
+	}
+
 	clientName := d.Get("client_name").(string)
 	allowedScopesRaw := d.Get("allowed_scopes").([]interface{})
 	allowedScopes := make([]string, len(allowedScopesRaw))
@@ -69,14 +91,16 @@ func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.Resour
 		redirectUris[i] = raw.(string)
 	}
 
+	allowedGrantTypes := [1]string{"client_credentials"}
 	model := client.AuthorizationCodeClientCreate{
-		ClientId:      clientId,
-		ClientName:    clientName,
-		AllowedScopes: allowedScopes,
-		RedirectUris:  redirectUris,
+		ClientId:          clientId,
+		ClientName:        clientName,
+		AllowedScopes:     allowedScopes,
+		RedirectUris:      redirectUris,
+		AllowedGrantTypes: allowedGrantTypes[:],
 	}
 
-	err := c.CreateAuthorizationCodeClient(&model)
+	err = c.CreateAuthorizationCodeClient(&model)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -89,6 +113,8 @@ func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.Resour
 }
 
 func resourceAuthorizationCodeClientRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] Reading resource (%s)", d.Id())
+
 	c := m.(*client.Client)
 
 	var diags diag.Diagnostics
@@ -97,7 +123,18 @@ func resourceAuthorizationCodeClientRead(ctx context.Context, d *schema.Resource
 
 	authCodeClient, err := c.GetAuthorizationCodeClient(clientId)
 	if err != nil {
-		return diag.FromErr(err)
+		cErr, ok := err.(*client.ClientError)
+		if ok {
+			if cErr.Status == http.StatusBadRequest {
+				log.Printf("[WARN] The authorization code client was (%s) not found, removing from state", d.Id())
+				d.SetId("")
+				return nil
+			} else {
+				return diag.FromErr(err)
+			}
+		} else {
+			return diag.FromErr(err)
+		}
 	}
 
 	d.Set("client_id", authCodeClient.ClientId)
@@ -105,16 +142,30 @@ func resourceAuthorizationCodeClientRead(ctx context.Context, d *schema.Resource
 	d.Set("allowed_scopes", authCodeClient.AllowedScopes)
 	d.Set("redirect_uris", authCodeClient.RedirectUris)
 	d.Set("enabled", authCodeClient.Enabled)
+	d.Set("allowed_grant_types", authCodeClient.AllowedGrantTypes)
 
 	return diags
 }
 
 func resourceAuthorizationCodeClientUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] Updating resource (%s)", d.Id())
+
 	c := m.(*client.Client)
 
 	clientId := d.Id()
 
-	updateModel := client.AuthorizationCodeClientUpdate{}
+	authCodeClient, err := c.GetAuthorizationCodeClient(clientId)
+	if err != nil {
+		_, ok := err.(*client.ClientError)
+		if ok {
+			return diag.FromErr(err)
+		} else {
+			return diag.FromErr(err)
+		}
+	}
+
+	// Could use json-patch instead
+	updateModel := authCodeClient.ToUpdateModel()
 
 	if d.HasChange("client_name") {
 		updateModel.ClientName = d.Get("client_name").(string)
@@ -142,7 +193,13 @@ func resourceAuthorizationCodeClientUpdate(ctx context.Context, d *schema.Resour
 		updateModel.Enabled = d.Get("enabled").(bool)
 	}
 
-	err := c.UpdateAuthorizationCodeClient(clientId, &updateModel)
+	allowedGrantTypesRaw := d.Get("allowed_grant_types").([]interface{})
+	allowedGrantTypes := make([]string, len(allowedGrantTypesRaw))
+	for i, raw := range allowedGrantTypesRaw {
+		allowedGrantTypes[i] = raw.(string)
+	}
+
+	err = c.UpdateAuthorizationCodeClient(clientId, &updateModel)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -151,6 +208,8 @@ func resourceAuthorizationCodeClientUpdate(ctx context.Context, d *schema.Resour
 }
 
 func resourceAuthorizationCodeClientDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	log.Printf("[INFO] Deleting resource (%s)", d.Id())
+
 	c := m.(*client.Client)
 
 	var diags diag.Diagnostics

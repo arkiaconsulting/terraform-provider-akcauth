@@ -32,26 +32,6 @@ func TestAccApiScope_EnsureAttributes(t *testing.T) {
 	})
 }
 
-func TestAccApiScope_CanBeImported(t *testing.T) {
-	data := acceptance.BuildTestData(t, "akcauth_api_scope", "basic_read")
-	r := ApiScopeResource{}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviders,
-		CheckDestroy:      testAccCheckApiScopeDestroy(t),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccApiScope_NoLongerExists(t *testing.T) {
 	data := acceptance.BuildTestData(t, "akcauth_api_scope", "basic_read")
 	r := ApiScopeResource{}
