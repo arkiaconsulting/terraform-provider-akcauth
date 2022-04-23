@@ -19,13 +19,13 @@ func Test_ApiResource_Create_ShouldPass(t *testing.T) {
 		callbacked = true
 	})
 
+	name := "api-resource-name"
 	model := ApiResourceCreate{
-		Name:        "api-resource-name",
 		DisplayName: "display-name",
 		Scopes:      []string{"basic.read", "basic.write"},
 	}
 
-	err := c.CreateApiResource(&model)
+	err := c.CreateApiResource(name, &model)
 
 	assert.Nil(t, err)
 	assert.True(t, callbacked)

@@ -20,23 +20,23 @@ provider "akcauth" {
 resource "akcauth_authorization_code_client" "my_client" {
   client_id      = "myClient"
   client_name    = "My client"
-  allowed_scopes = [akcauth_api_scope.api1_read.name, akcauth_api_scope.api1_write.name]
+  allowed_scopes = [akcauth_api_scope.my_resource_read.name, akcauth_api_scope.my_resource_write.name]
   redirect_uris  = ["https://callback"]
 }
 
-resource "akcauth_api_scope" "api1_read" {
-  name = "api1.read"
+resource "akcauth_api_scope" "my_resource_read" {
+  name = "myResource.read"
 }
 
-resource "akcauth_api_scope" "api1_write" {
-  name = "api1.write"
+resource "akcauth_api_scope" "my_resource_write" {
+  name = "myResource.write"
 }
 
-resource "akcauth_api_resource" "api1" {
-  name         = "api1"
-  display_name = "Api 1"
+resource "akcauth_api_resource" "my_resource" {
+  name         = "myResource"
+  display_name = "My resource"
   scopes = [
-    akcauth_api_scope.api1_read.name,
-    akcauth_api_scope.api1_write.name,
+    akcauth_api_scope.my_resource_read.name,
+    akcauth_api_scope.my_resource_write.name,
   ]
 }
