@@ -24,7 +24,7 @@ func TestAccApiScope_EnsureAttributes(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
+					testAccCheckApiScopeResourceExist(t, data.ResourceName),
 				),
 			},
 		},
@@ -38,12 +38,12 @@ func TestAccApiScope_CanBeImported(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
-		CheckDestroy:      testAccCheckApiResourceDestroy(t),
+		CheckDestroy:      testAccCheckApiScopeDestroy(t),
 		Steps: []resource.TestStep{
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					testAccCheckApiScopeResourceExist(t, data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -63,8 +63,8 @@ func TestAccApiScope_NoLongerExists(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
-					testAccCheckApiScopeDisappears("akcauth_api_scope.basic_read"),
+					testAccCheckApiScopeResourceExist(t, data.ResourceName),
+					testAccCheckApiScopeDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -84,12 +84,12 @@ func TestAccApiScope_RequiresImport(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
+					testAccCheckApiScopeResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config:      r.requiresImport(data),
-				ExpectError: RequiresImportError("akcauth_api_scope"),
+				ExpectError: RequiresImportError(data.ResourceType),
 			},
 		},
 	})

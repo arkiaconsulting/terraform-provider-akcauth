@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-type ClientResource struct{}
+type ClientResource struct {
+}
 
 func TestAccAuthorizationCodeClient_EnsureAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "akcauth_authorization_code_client", "my_client")
@@ -24,7 +25,9 @@ func TestAccAuthorizationCodeClient_EnsureAttributes(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_grant_types.#", "1"),
+					resource.TestCheckTypeSetElemAttr(data.ResourceName, "allowed_grant_types.*", "client_credentials"),
 				),
 			},
 			data.ImportStep(),
@@ -44,14 +47,14 @@ func TestAccAuthorizationCodeClient_Update_ClientName(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config: r.nameUpdate(data, "new-client-name"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "client_name", "new-client-name"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_name", "new-client-name"),
 				),
 			},
 		},
@@ -70,14 +73,14 @@ func TestAccAuthorizationCodeClient_Update_Disable(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config: r.disable(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
-					resource.TestCheckResourceAttr("akcauth_authorization_code_client.my_client", "enabled", "false"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 		},
@@ -96,8 +99,8 @@ func TestAccAuthorizationCodeClient_NoLongerExists(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
-					testAccCheckAuthorizationCodeClientDisappears("akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
+					testAccCheckAuthorizationCodeClientDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -117,12 +120,12 @@ func TestAccAuthorizationCodeClient_RequiresImport(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAuthorizationCodeClientResourceExist(t, "akcauth_authorization_code_client.my_client"),
+					testAccCheckAuthorizationCodeClientResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config:      r.requiresImport(data),
-				ExpectError: RequiresImportError("akcauth_authorization_code_client"),
+				ExpectError: RequiresImportError(data.ResourceType),
 			},
 		},
 	})

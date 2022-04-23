@@ -24,8 +24,8 @@ func TestAccApiResource_EnsureAttributes(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
-					resource.TestCheckResourceAttr("akcauth_api_resource.basic_api", "display_name", fmt.Sprintf("acctest apiresource %d", data.RandomInteger)),
+					testAccCheckApiResourceResourceExist(t, data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctest apiresource %d", data.RandomInteger)),
 				),
 			},
 		},
@@ -44,13 +44,13 @@ func TestAccApiResource_Update(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					testAccCheckApiResourceResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config: r.displayNameUpdate(data, "new display name"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("akcauth_api_resource.basic_api", "display_name", "new display name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "new display name"),
 				),
 			},
 		},
@@ -69,7 +69,7 @@ func TestAccApiResource_CanBeImported(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					testAccCheckApiResourceResourceExist(t, data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -89,8 +89,8 @@ func TestAccApiResource_NoLongerExists(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
-					testAccCheckApiResourceDisappears("akcauth_api_resource.basic_api"),
+					testAccCheckApiResourceResourceExist(t, data.ResourceName),
+					testAccCheckApiResourceDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -110,12 +110,12 @@ func TestAccApiResource_RequiresImport(t *testing.T) {
 			{
 				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					testAccCheckApiResourceResourceExist(t, data.ResourceName),
 				),
 			},
 			{
 				Config:      r.requiresImport(data),
-				ExpectError: RequiresImportError("akcauth_api_resource"),
+				ExpectError: RequiresImportError(data.ResourceType),
 			},
 		},
 	})
