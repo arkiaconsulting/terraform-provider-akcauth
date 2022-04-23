@@ -2,7 +2,9 @@ package akcauth
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net/http"
 	"terraform-provider-akcauth/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -39,11 +41,23 @@ func resourceApiResource() *schema.Resource {
 }
 
 func resourceApiResourceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	name := d.Get("name").(string)
+	log.Printf("[INFO] Creating Api resource (%s)", name)
+
 	c := m.(*client.Client)
 
 	var diags diag.Diagnostics
 
-	name := d.Get("name").(string)
+	existing, err := c.GetApiResource(name)
+	if err != nil {
+		cErr, ok := err.(*client.ClientError)
+		if !ok || (ok && cErr.Status != http.StatusNotFound) {
+			return diag.FromErr(fmt.Errorf("checking for presence of existing %s: %+v", name, err))
+		}
+	} else {
+		return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", existing.Name, "akcauth_api_resource"))
+	}
+
 	displayName := d.Get("display_name").(string)
 	scopesRaw := d.Get("scopes").([]interface{})
 	scopes := make([]string, len(scopesRaw))
@@ -56,7 +70,7 @@ func resourceApiResourceCreate(ctx context.Context, d *schema.ResourceData, m in
 		Scopes:      scopes,
 	}
 
-	err := c.CreateApiResource(name, &model)
+	err = c.CreateApiResource(name, &model)
 	if err != nil {
 		return diag.FromErr(err)
 	}

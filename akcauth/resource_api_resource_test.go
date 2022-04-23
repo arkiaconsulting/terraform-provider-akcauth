@@ -77,7 +77,7 @@ func TestAccApiResource_CanBeImported(t *testing.T) {
 	})
 }
 
-func TestAccResource_NoLongerExists(t *testing.T) {
+func TestAccApiResource_NoLongerExists(t *testing.T) {
 	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
 	r := ApiResourceResource{}
 
@@ -93,6 +93,29 @@ func TestAccResource_NoLongerExists(t *testing.T) {
 					testAccCheckApiResourceDisappears("akcauth_api_resource.basic_api"),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccApiResource_RequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
+	r := ApiResourceResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+				),
+			},
+			{
+				Config:      r.requiresImport(data),
+				ExpectError: RequiresImportError("akcauth_api_resource"),
 			},
 		},
 	})
@@ -120,6 +143,18 @@ func (r ApiResourceResource) displayNameUpdate(data acceptance.TestData, display
 		scopes = [ "api_read_%d", "api_write_%d" ]
 	}
 	`, base(data), data.RandomInteger, displayName, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiResourceResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+
+	resource "akcauth_api_resource" "import" {
+		name = akcauth_api_resource.basic_api.name
+		display_name = akcauth_api_resource.basic_api.display_name
+		scopes = akcauth_api_resource.basic_api.scopes
+	}
+	`, r.basic(data))
 }
 
 func testAccCheckApiResourceResourceExist(t *testing.T, resourceName string) resource.TestCheckFunc {

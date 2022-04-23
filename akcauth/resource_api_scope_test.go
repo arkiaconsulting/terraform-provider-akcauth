@@ -27,6 +27,25 @@ func TestAccApiScope_EnsureAttributes(t *testing.T) {
 					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccApiScope_CanBeImported(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_api_scope", "basic_read")
+	r := ApiScopeResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+				),
+			},
 			data.ImportStep(),
 		},
 	})
@@ -53,6 +72,29 @@ func TestAccApiScope_NoLongerExists(t *testing.T) {
 	})
 }
 
+func TestAccApiScope_RequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_api_scope", "basic_read")
+	r := ApiScopeResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiScopeDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckApiScopeResourceExist(t, "akcauth_api_scope.basic_read"),
+				),
+			},
+			{
+				Config:      r.requiresImport(data),
+				ExpectError: RequiresImportError("akcauth_api_scope"),
+			},
+		},
+	})
+}
+
 func (r ApiScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%s
@@ -61,6 +103,16 @@ func (r ApiScopeResource) basic(data acceptance.TestData) string {
 		name = "acctest-apiscope-%d"
 	}
 	`, base(data), data.RandomInteger)
+}
+
+func (r ApiScopeResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+
+	resource "akcauth_api_scope" "import" {
+		name = akcauth_api_scope.basic_read.name
+	}
+	`, r.basic(data))
 }
 
 func testAccCheckApiScopeResourceExist(t *testing.T, resourceName string) resource.TestCheckFunc {
