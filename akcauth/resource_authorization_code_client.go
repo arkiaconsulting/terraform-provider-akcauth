@@ -71,7 +71,7 @@ func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.Resour
 	existing, err := c.GetAuthorizationCodeClient(clientId)
 	if err != nil {
 		cErr, ok := err.(*client.ClientError)
-		if !ok || (ok && cErr.Status != http.StatusBadRequest) {
+		if !ok || (ok && cErr.Status != http.StatusNotFound) {
 			return diag.FromErr(fmt.Errorf("checking for presence of existing %s: %+v", clientId, err))
 		}
 	} else {
@@ -125,7 +125,7 @@ func resourceAuthorizationCodeClientRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		cErr, ok := err.(*client.ClientError)
 		if ok {
-			if cErr.Status == http.StatusBadRequest {
+			if cErr.Status == http.StatusNotFound {
 				log.Printf("[WARN] The authorization code client was (%s) not found, removing from state", d.Id())
 				d.SetId("")
 				return nil

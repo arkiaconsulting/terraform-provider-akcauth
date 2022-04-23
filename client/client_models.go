@@ -45,3 +45,12 @@ func (source AuthorizationCodeClient) ToUpdateModel() AuthorizationCodeClientUpd
 
 	return updateModel
 }
+
+func (source ApiResource) ToUpdateModel() ApiResourceUpdate {
+	updateModel := ApiResourceUpdate{
+		DisplayName: source.DisplayName,
+		Scopes:      source.Scopes,
+	}
+
+	return updateModel
+}

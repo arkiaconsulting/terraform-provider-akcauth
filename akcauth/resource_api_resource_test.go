@@ -2,31 +2,30 @@ package akcauth
 
 import (
 	"fmt"
-	"strings"
-	"terraform-provider-akcauth/client"
+	"log"
+	"terraform-provider-akcauth/acceptance"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+type ApiResourceResource struct{}
+
 func TestAccApiResource_EnsureAttributes(t *testing.T) {
-	data := randomApiResource()
+	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
+	r := ApiResourceResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
-		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccApiResourceResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.my_resource"),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "name", data.Name),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "display_name", data.DisplayName),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "scopes.0", data.Scopes[0]),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "scopes.1", data.Scopes[1]),
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					resource.TestCheckResourceAttr("akcauth_api_resource.basic_api", "display_name", fmt.Sprintf("acctest apiresource %d", data.RandomInteger)),
 				),
 			},
 		},
@@ -34,29 +33,24 @@ func TestAccApiResource_EnsureAttributes(t *testing.T) {
 }
 
 func TestAccApiResource_Update(t *testing.T) {
-	data := randomApiResource()
+	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
+	r := ApiResourceResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
-		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccApiResourceResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.my_resource"),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "name", data.Name),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "display_name", data.DisplayName),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "scopes.0", data.Scopes[0]),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "scopes.1", data.Scopes[1]),
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
 				),
 			},
 			{
-				Config: testAccApiResourceResource_single(data.Name, "updated", []string{"s1"}),
+				Config: r.displayNameUpdate(data, "new display name"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "name", data.Name),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "display_name", "updated"),
-					resource.TestCheckResourceAttr("akcauth_api_resource.my_resource", "scopes.0", "s1"),
+					resource.TestCheckResourceAttr("akcauth_api_resource.basic_api", "display_name", "new display name"),
 				),
 			},
 		},
@@ -64,48 +58,73 @@ func TestAccApiResource_Update(t *testing.T) {
 }
 
 func TestAccApiResource_CanBeImported(t *testing.T) {
-	data := randomApiResource()
+	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
+	r := ApiResourceResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviders,
-		CheckDestroy:      testAccCheckApiResourceResourceDestroy(t),
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccApiResourceResource_full(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.my_resource"),
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccResource_NoLongerExists(t *testing.T) {
+	data := acceptance.BuildTestData(t, "akcauth_api_resource", "basic_api")
+	r := ApiResourceResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
+		CheckDestroy:      testAccCheckApiResourceDestroy(t),
+		Steps: []resource.TestStep{
 			{
-				ResourceName:      "akcauth_api_resource.my_resource",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: r.basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckApiResourceResourceExist(t, "akcauth_api_resource.basic_api"),
+					testAccCheckApiResourceDisappears("akcauth_api_resource.basic_api"),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
-func testAccApiResourceResource_full(data *ApiResourceTestData) string {
+func (r ApiResourceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "akcauth" {}
-%s
-`, testAccApiResourceResource_single(data.Name, data.DisplayName, data.Scopes))
+	%s
+	
+	resource "akcauth_api_resource" "basic_api" {
+		name = "acctest-apiresource-%d"
+		display_name = "acctest apiresource %d"
+		scopes = [ "api_read_%d", "api_write_%d" ]
+	}
+	`, base(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccApiResourceResource_single(name string, displayName string, scopes []string) string {
+func (r ApiResourceResource) displayNameUpdate(data acceptance.TestData, displayName string) string {
 	return fmt.Sprintf(`
-resource "akcauth_api_resource" "my_resource" {
-	name = "%s"
-	display_name = "%s"
-	scopes = [ "%s" ]
-}
-`, name, displayName, strings.Join(scopes, `","`))
+	%s
+	
+	resource "akcauth_api_resource" "basic_api" {
+		name = "acctest-apiresource-%d"
+		display_name = "%s"
+		scopes = [ "api_read_%d", "api_write_%d" ]
+	}
+	`, base(data), data.RandomInteger, displayName, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccCheckApiResourceResourceExist(t *testing.T, resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		c := testAccProvider.Meta().(*client.Client)
+		log.Printf("[INFO] Ensure that the Api resource (%s) exists", resourceName)
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -118,7 +137,7 @@ func testAccCheckApiResourceResourceExist(t *testing.T, resourceName string) res
 
 		apiResourceName := rs.Primary.Attributes["name"]
 
-		_, err := c.GetApiResource(apiResourceName)
+		_, err := getTestClient().GetApiResource(apiResourceName)
 		if err != nil {
 			return err
 		}
@@ -127,9 +146,9 @@ func testAccCheckApiResourceResourceExist(t *testing.T, resourceName string) res
 	}
 }
 
-func testAccCheckApiResourceResourceDestroy(t *testing.T) func(s *terraform.State) error {
+func testAccCheckApiResourceDestroy(t *testing.T) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
-		c := testAccProvider.Meta().(*client.Client)
+		log.Print("[INFO] Ensure that all the Api scope resources were destroyed")
 
 		for name, rs := range s.RootModule().Resources {
 			if rs.Type != "akcauth_api_resource" {
@@ -137,9 +156,9 @@ func testAccCheckApiResourceResourceDestroy(t *testing.T) func(s *terraform.Stat
 			}
 
 			apiResourceName := rs.Primary.ID
-			_, err := c.GetApiResource(apiResourceName)
+			_, err := getTestClient().GetApiResource(name)
 			if err == nil {
-				return fmt.Errorf("The api resource with name '%s' still exists. (%s)", apiResourceName, name)
+				return fmt.Errorf("The Api resource with name '%s' still exists. (%s)", apiResourceName, name)
 			}
 		}
 
@@ -147,21 +166,26 @@ func testAccCheckApiResourceResourceDestroy(t *testing.T) func(s *terraform.Stat
 	}
 }
 
-type ApiResourceTestData struct {
-	Name        string
-	DisplayName string
-	Scopes      []string
-}
+func testAccCheckApiResourceDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		log.Printf("[INFO] Test is manually deleting the Api resource (%s)", resourceName)
+		resourceState, ok := s.RootModule().Resources[resourceName]
 
-func randomApiResource() *ApiResourceTestData {
-	data := ApiResourceTestData{
-		Name:        acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum),
-		DisplayName: acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum),
-		Scopes:      make([]string, 2),
+		if !ok {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
+
+		if resourceState.Primary.ID == "" {
+			return fmt.Errorf("resource ID missing: %s", resourceName)
+		}
+
+		apiResourceName := resourceState.Primary.ID
+
+		err := getTestClient().DeleteApiResource(apiResourceName)
+		if err != nil {
+			return fmt.Errorf("We were unable to delete the remote Api resource '%s'", apiResourceName)
+		}
+
+		return nil
 	}
-
-	data.Scopes[0] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-	data.Scopes[1] = acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
-
-	return &data
 }

@@ -2,6 +2,7 @@ package akcauth
 
 import (
 	"context"
+	"log"
 	"terraform-provider-akcauth/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -51,12 +52,11 @@ func resourceApiResourceCreate(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	model := client.ApiResourceCreate{
-		Name:        name,
 		DisplayName: displayName,
 		Scopes:      scopes,
 	}
 
-	err := c.CreateApiResource(&model)
+	err := c.CreateApiResource(name, &model)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -73,16 +73,18 @@ func resourceApiResourceRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	var diags diag.Diagnostics
 
-	name := d.Id()
+	apiResourceName := d.Id()
 
-	authCodeClient, err := c.GetApiResource(name)
+	authApiResource, err := c.GetApiResource(apiResourceName)
 	if err != nil {
-		return diag.FromErr(err)
+		log.Printf("[WARN] Api resource (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
 	}
 
-	d.Set("name", authCodeClient.Name)
-	d.Set("display_name", authCodeClient.DisplayName)
-	d.Set("scopes", authCodeClient.Scopes)
+	d.Set("name", authApiResource.Name)
+	d.Set("display_name", authApiResource.DisplayName)
+	d.Set("scopes", authApiResource.Scopes)
 
 	return diags
 }
@@ -92,7 +94,17 @@ func resourceApiResourceUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	name := d.Id()
 
-	updateModel := client.ApiResourceUpdate{}
+	apiResource, err := c.GetApiResource(name)
+	if err != nil {
+		_, ok := err.(*client.ClientError)
+		if ok {
+			return diag.FromErr(err)
+		} else {
+			return diag.FromErr(err)
+		}
+	}
+
+	updateModel := apiResource.ToUpdateModel()
 
 	if d.HasChange("display_name") {
 		updateModel.DisplayName = d.Get("display_name").(string)
@@ -107,7 +119,7 @@ func resourceApiResourceUpdate(ctx context.Context, d *schema.ResourceData, m in
 		updateModel.Scopes = scopes
 	}
 
-	err := c.UpdateApiResource(name, &updateModel)
+	err = c.UpdateApiResource(name, &updateModel)
 	if err != nil {
 		return diag.FromErr(err)
 	}
