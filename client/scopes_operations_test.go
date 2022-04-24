@@ -14,7 +14,7 @@ func Test_Scope_Create_ShouldPass(t *testing.T) {
 	scopeName := "my-scope"
 	c := setupWithCallback(201, "", func(req *http.Request) {
 		assert.Equal(t, "PUT", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/testpath/scopes/%s", AnyTestHostUrl, scopeName), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/scopes/%s", AnyTestHostUrl, scopeName), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
 		assert.Equal(t, `{"displayName":"display-name","description":"description","showInDiscoveryDocument":true,"userClaims":["given_name"],"properties":{"prop":"value"},"enabled":true,"required":true,"emphasize":false}`, string(requestContent))
 		callbacked = true
@@ -42,7 +42,7 @@ func Test_Scope_Get_ShouldPass(t *testing.T) {
 	responseJson := `{"name":"scope-name","displayName":"display-name","description":"description","showInDiscoveryDocument":true,"userClaims":["given_name"],"properties":{"prop":"value"},"enabled":true,"required":true,"emphasize":false}`
 	c := setupWithCallback(200, responseJson, func(req *http.Request) {
 		assert.Equal(t, "GET", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/testpath/scopes/%s", AnyTestHostUrl, "scope-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/scopes/%s", AnyTestHostUrl, "scope-name"), req.URL.String())
 		callbacked = true
 	})
 
@@ -65,7 +65,7 @@ func Test_Scope_Delete_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(204, "", func(req *http.Request) {
 		assert.Equal(t, "DELETE", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/testpath/scopes/%s", AnyTestHostUrl, "scope-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/scopes/%s", AnyTestHostUrl, "scope-name"), req.URL.String())
 		callbacked = true
 	})
 

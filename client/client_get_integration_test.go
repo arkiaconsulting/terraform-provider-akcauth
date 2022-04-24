@@ -1,6 +1,7 @@
 package client
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -22,19 +23,23 @@ func Test_Integration_ShouldPass(t *testing.T) {
 	}
 	clientId := "toto"
 	HttpClient = &http.Client{Timeout: 10 * time.Second}
+
+	log.Print("[INFO] Instantiating client")
 	c, err := NewClient(&config)
 	if err != nil {
 		assert.FailNow(t, err.Error())
 	}
 
-	err = c.CreateAuthorizationCodeClient(&AuthorizationCodeClientCreate{
-		ClientId:   clientId,
-		ClientName: "client name",
+	log.Print("[INFO] Creating client")
+	err = c.CreateAuthorizationCodeClient(clientId, &AuthorizationCodeClientCreate{
+		ClientName:        "client name",
+		AllowedGrantTypes: []string{"client_credentials"},
 	})
 	if err != nil {
 		t.Fatalf("Client creation resulted in '%s'", err.Error())
 	}
 
+	log.Print("[INFO] Getting client")
 	myClient, err := c.GetAuthorizationCodeClient(clientId)
 	if err != nil {
 		assert.FailNow(t, err.Error())
@@ -42,12 +47,20 @@ func Test_Integration_ShouldPass(t *testing.T) {
 
 	assert.Equal(t, clientId, myClient.ClientId)
 
+	log.Print("[INFO] Updating client")
 	newClientName, _ := uuid.GenerateUUID()
-	err = c.UpdateAuthorizationCodeClient(clientId, &AuthorizationCodeClientUpdate{ClientName: newClientName})
+	err = c.UpdateAuthorizationCodeClient(clientId, &AuthorizationCodeClientUpdate{
+		AllowedGrantTypes: myClient.AllowedGrantTypes,
+		ClientName:        newClientName,
+		AllowedScopes:     myClient.AllowedScopes,
+		RedirectUris:      myClient.RedirectUris,
+		Enabled:           myClient.Enabled,
+	})
 	if err != nil {
 		t.Logf("Client update resulted in '%s'", err.Error())
 	}
 
+	log.Print("[INFO] Deleting client")
 	err = c.DeleteAuthorizationCodeClient(clientId)
 	assert.Nil(t, err)
 }

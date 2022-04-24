@@ -13,20 +13,20 @@ func Test_AuthorizationCodeClient_Create_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(200, "", func(req *http.Request) {
 		assert.Equal(t, "PUT", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/clients", AnyTestHostUrl), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/clients/client-id", AnyTestHostUrl), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
-		assert.Equal(t, `{"clientId":"client-id","clientName":"client name","allowedScopes":["basic","readwrite"],"redirectUris":["https://callback"]}`, string(requestContent))
+		assert.Equal(t, `{"clientName":"client name","allowedScopes":["basic","readwrite"],"redirectUris":["https://callback"],"allowedGrantTypes":["client_credentials"]}`, string(requestContent))
 		callbacked = true
 	})
 
 	model := AuthorizationCodeClientCreate{
-		ClientId:      "client-id",
-		ClientName:    "client name",
-		AllowedScopes: []string{"basic", "readwrite"},
-		RedirectUris:  []string{"https://callback"},
+		ClientName:        "client name",
+		AllowedScopes:     []string{"basic", "readwrite"},
+		RedirectUris:      []string{"https://callback"},
+		AllowedGrantTypes: []string{"client_credentials"},
 	}
 
-	err := c.CreateAuthorizationCodeClient(&model)
+	err := c.CreateAuthorizationCodeClient("client-id", &model)
 
 	assert.Nil(t, err)
 	assert.True(t, callbacked)

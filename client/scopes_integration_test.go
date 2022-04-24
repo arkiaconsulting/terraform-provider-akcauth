@@ -1,8 +1,10 @@
 package client
 
 import (
+	"log"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,14 +14,16 @@ import (
 func Test_Scopes_Integration_ClientCredentials_ShouldPass(t *testing.T) {
 	config := ClientConfig{
 		HostUrl:           os.Getenv("AKC_AUTH_BASE_ADDRESS"),
-		AuthorizationType: "client_credentials",
-		ClientId:          "client",
-		ClientSecret:      "secret",
-		Scopes:            []string{"IdentityServerApi"},
-		BasePath:          "my",
+		BasePath:          os.Getenv("AKC_AUTH_BASE_PATH"),
+		AuthorizationType: os.Getenv("AKC_AUTH_AUTHORIZATION_TYPE"),
+		ClientId:          os.Getenv("AKC_AUTH_CLIENT_ID"),
+		ClientSecret:      os.Getenv("AKC_AUTH_CLIENT_SECRET"),
+		Scopes:            strings.Split(os.Getenv("AKC_AUTH_SCOPES"), " "),
 	}
 	scopeName := "basic.read"
 	HttpClient = &http.Client{Timeout: 10 * time.Second}
+
+	log.Print("[INFO] Instantiating client")
 	c, err := NewClient(&config)
 	if err != nil {
 		assert.FailNow(t, err.Error())
@@ -36,11 +40,13 @@ func Test_Scopes_Integration_ClientCredentials_ShouldPass(t *testing.T) {
 		Emphasize:               false,
 	}
 
+	log.Print("[INFO] Creating Api scope")
 	err = c.CreateApiScope(scopeName, &apiScope)
 	if err != nil {
 		t.Logf("Scope creation resulted in '%s'", err.Error())
 	}
 
+	log.Print("[INFO] Getting Api scope")
 	myScope, err := c.GetApiScope(scopeName)
 	if err != nil {
 		assert.FailNow(t, err.Error())
@@ -56,6 +62,7 @@ func Test_Scopes_Integration_ClientCredentials_ShouldPass(t *testing.T) {
 	assert.Equal(t, apiScope.Required, myScope.Required)
 	assert.Equal(t, apiScope.Emphasize, myScope.Emphasize)
 
+	log.Print("[INFO] Deleting Api scope")
 	err = c.DeleteApiScope(scopeName)
 	assert.Nil(t, err)
 }

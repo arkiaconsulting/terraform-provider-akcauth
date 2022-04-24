@@ -87,14 +87,13 @@ func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.Resour
 
 	allowedGrantTypes := [1]string{"client_credentials"}
 	model := client.AuthorizationCodeClientCreate{
-		ClientId:          clientId,
 		ClientName:        clientName,
 		AllowedScopes:     allowedScopes,
 		RedirectUris:      redirectUris,
 		AllowedGrantTypes: allowedGrantTypes[:],
 	}
 
-	err = c.CreateAuthorizationCodeClient(&model)
+	err = c.CreateAuthorizationCodeClient(clientId, &model)
 	if err != nil {
 		return diag.FromErr(err)
 	}

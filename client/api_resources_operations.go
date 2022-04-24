@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Client) CreateApiResource(name string, model *ApiResourceCreate) error {
-	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s/%s/resources/%s", c.HostURL, c.Config.BasePath, name), model)
+	req, err := c.prepareRequest("PUT", fmt.Sprintf("%s%s/resources/%s", c.HostURL, c.Config.BasePath, name), model)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func (c *Client) CreateApiResource(name string, model *ApiResourceCreate) error 
 }
 
 func (c *Client) GetApiResource(apiResourceName string) (*ApiResource, error) {
-	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), nil)
+	req, err := c.prepareRequest("GET", fmt.Sprintf("%s%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (c *Client) GetApiResource(apiResourceName string) (*ApiResource, error) {
 }
 
 func (c *Client) UpdateApiResource(apiResourceName string, model *ApiResourceUpdate) error {
-	req, err := c.prepareRequest("POST", fmt.Sprintf("%s/%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), model)
+	req, err := c.prepareRequest("POST", fmt.Sprintf("%s%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), model)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (c *Client) UpdateApiResource(apiResourceName string, model *ApiResourceUpd
 }
 
 func (c *Client) DeleteApiResource(apiResourceName string) error {
-	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), nil)
+	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s%s/resources/%s", c.HostURL, c.Config.BasePath, apiResourceName), nil)
 	if err != nil {
 		return err
 	}
