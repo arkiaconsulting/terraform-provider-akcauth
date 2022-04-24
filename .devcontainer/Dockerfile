@@ -23,6 +23,12 @@ RUN go install golang.org/x/tools/gopls@v0.8.2
 # Install golangci-linter
 RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0
 
+ARG TF_VERSION="1.1.9"
+RUN wget https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
+    && unzip terraform_${TF_VERSION}_linux_amd64.zip \
+    && mv terraform /usr/local/bin/terraform \
+    && rm terraform_${TF_VERSION}_linux_amd64.zip
+
 COPY ./scripts/configbash.sh .
 RUN bash -f ./configbash.sh
 

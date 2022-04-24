@@ -1,7 +1,7 @@
 package akcauth
 
 func expandString(input []interface{}) []string {
-	output := make([]string, len(input))
+	output := make([]string, 0)
 
 	for _, s := range input {
 		output = append(output, s.(string))
