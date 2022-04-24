@@ -80,16 +80,10 @@ func resourceAuthorizationCodeClientCreate(ctx context.Context, d *schema.Resour
 
 	clientName := d.Get("client_name").(string)
 	allowedScopesRaw := d.Get("allowed_scopes").([]interface{})
-	allowedScopes := make([]string, len(allowedScopesRaw))
-	for i, raw := range allowedScopesRaw {
-		allowedScopes[i] = raw.(string)
-	}
-
 	redirectUrisRaw := d.Get("redirect_uris").([]interface{})
-	redirectUris := make([]string, len(redirectUrisRaw))
-	for i, raw := range redirectUrisRaw {
-		redirectUris[i] = raw.(string)
-	}
+
+	allowedScopes := expandString(allowedScopesRaw)
+	redirectUris := expandString(redirectUrisRaw)
 
 	allowedGrantTypes := [1]string{"client_credentials"}
 	model := client.AuthorizationCodeClientCreate{
@@ -173,20 +167,12 @@ func resourceAuthorizationCodeClientUpdate(ctx context.Context, d *schema.Resour
 
 	if d.HasChange("allowed_scopes") {
 		allowedScopesRaw := d.Get("allowed_scopes").([]interface{})
-		allowedScopes := make([]string, len(allowedScopesRaw))
-		for i, raw := range allowedScopesRaw {
-			allowedScopes[i] = raw.(string)
-		}
-		updateModel.AllowedScopes = allowedScopes
+		updateModel.AllowedScopes = expandString(allowedScopesRaw)
 	}
 
 	if d.HasChange("redirect_uris") {
 		redirectUrisRaw := d.Get("redirect_uris").([]interface{})
-		redirectUris := make([]string, len(redirectUrisRaw))
-		for i, raw := range redirectUrisRaw {
-			redirectUris[i] = raw.(string)
-		}
-		updateModel.RedirectUris = redirectUris
+		updateModel.RedirectUris = expandString(redirectUrisRaw)
 	}
 
 	if d.HasChange("enabled") {
@@ -194,10 +180,7 @@ func resourceAuthorizationCodeClientUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	allowedGrantTypesRaw := d.Get("allowed_grant_types").([]interface{})
-	allowedGrantTypes := make([]string, len(allowedGrantTypesRaw))
-	for i, raw := range allowedGrantTypesRaw {
-		allowedGrantTypes[i] = raw.(string)
-	}
+	updateModel.AllowedGrantTypes = expandString(allowedGrantTypesRaw)
 
 	err = c.UpdateAuthorizationCodeClient(clientId, &updateModel)
 	if err != nil {

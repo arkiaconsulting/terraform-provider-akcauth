@@ -97,10 +97,7 @@ func resourceApiScopeCreate(ctx context.Context, d *schema.ResourceData, m inter
 	required := d.Get("required").(bool)
 	emphasize := d.Get("emphasize").(bool)
 
-	userClaims := make([]string, len(userClaimsRaw))
-	for i, raw := range userClaimsRaw {
-		userClaims[i] = raw.(string)
-	}
+	userClaims := expandString(userClaimsRaw)
 
 	properties := map[string]string{}
 	for key, element := range propertiesRaw {

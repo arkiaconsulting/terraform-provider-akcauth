@@ -70,10 +70,7 @@ func providerConfigure() func(context.Context, *schema.ResourceData) (interface{
 		clientSecret := d.Get("client_secret").(string)
 		scopesRaw := d.Get("scopes").([]interface{})
 
-		scopes := make([]string, len(scopesRaw))
-		for i, raw := range scopesRaw {
-			scopes[i] = raw.(string)
-		}
+		scopes := expandString(scopesRaw)
 
 		var diags diag.Diagnostics
 

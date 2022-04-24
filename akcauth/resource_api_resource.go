@@ -60,14 +60,10 @@ func resourceApiResourceCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	displayName := d.Get("display_name").(string)
 	scopesRaw := d.Get("scopes").([]interface{})
-	scopes := make([]string, len(scopesRaw))
-	for i, raw := range scopesRaw {
-		scopes[i] = raw.(string)
-	}
 
 	model := client.ApiResourceCreate{
 		DisplayName: displayName,
-		Scopes:      scopes,
+		Scopes:      expandString(scopesRaw),
 	}
 
 	err = c.CreateApiResource(name, &model)
@@ -126,11 +122,7 @@ func resourceApiResourceUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	if d.HasChange("scopes") {
 		scopesRaw := d.Get("scopes").([]interface{})
-		scopes := make([]string, len(scopesRaw))
-		for i, raw := range scopesRaw {
-			scopes[i] = raw.(string)
-		}
-		updateModel.Scopes = scopes
+		updateModel.Scopes = expandString(scopesRaw)
 	}
 
 	err = c.UpdateApiResource(name, &updateModel)
