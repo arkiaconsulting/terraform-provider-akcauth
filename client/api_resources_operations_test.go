@@ -13,9 +13,9 @@ func Test_ApiResource_Create_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(200, "", func(req *http.Request) {
 		assert.Equal(t, "PUT", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources", AnyTestHostUrl), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/api-resource-name", AnyTestHostUrl), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
-		assert.Equal(t, `{"name":"api-resource-name","displayName":"display-name","scopes":["basic.read","basic.write"]}`, string(requestContent))
+		assert.Equal(t, `{"displayName":"display-name","scopes":["basic.read","basic.write"]}`, string(requestContent))
 		callbacked = true
 	})
 
@@ -36,7 +36,7 @@ func Test_ApiResource_Get_ShouldPass(t *testing.T) {
 	responseJson := `{"name":"api-resource-name","displayName":"display-name","scopes":["basic.read","basic.write"]}`
 	c := setupWithCallback(200, responseJson, func(req *http.Request) {
 		assert.Equal(t, "GET", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
 		callbacked = true
 	})
 
@@ -53,7 +53,7 @@ func Test_ApiResource_Delete_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(204, "", func(req *http.Request) {
 		assert.Equal(t, "DELETE", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
 		callbacked = true
 	})
 
@@ -67,7 +67,7 @@ func Test_ApiResource_UpdateAllProperties_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(204, "", func(req *http.Request) {
 		assert.Equal(t, "POST", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
 		assert.Equal(t, `{"displayName":"updated","scopes":["s1"]}`, string(requestContent))
 		callbacked = true
@@ -88,7 +88,7 @@ func Test_ApiResource_Update_DisplayName_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(204, "", func(req *http.Request) {
 		assert.Equal(t, "POST", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
 		assert.Equal(t, `{"displayName":"updated"}`, string(requestContent))
 		callbacked = true
@@ -108,7 +108,7 @@ func Test_ApiResource_Update_Scopes_ShouldPass(t *testing.T) {
 	callbacked := false
 	c := setupWithCallback(204, "", func(req *http.Request) {
 		assert.Equal(t, "POST", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/resources/%s", AnyTestHostUrl, "api-resource-name"), req.URL.String())
 		requestContent, _ := ioutil.ReadAll(req.Body)
 		assert.Equal(t, `{"scopes":["s1"]}`, string(requestContent))
 		callbacked = true

@@ -127,7 +127,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		return body, &ClientError{
 			Status:  res.StatusCode,
 			Message: res.Status,
-			Err:     nil,
+			Err:     fmt.Errorf("status: %d, body: %s", res.StatusCode, body),
 		}
 	}
 
@@ -155,9 +155,9 @@ func (c *Client) prepareRequest(method string, url string, model interface{}) (*
 	return req, nil
 }
 
-func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCreate) error {
+func (c *Client) CreateAuthorizationCodeClient(clientId string, model *AuthorizationCodeClientCreate) error {
 	req, err := c.prepareRequest("PUT",
-		fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, model.ClientId), model)
+		fmt.Sprintf("%s%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), model)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (c *Client) CreateAuthorizationCodeClient(model *AuthorizationCodeClientCre
 }
 
 func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *AuthorizationCodeClientUpdate) error {
-	req, err := c.prepareRequest("POST", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), model)
+	req, err := c.prepareRequest("POST", fmt.Sprintf("%s%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), model)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (c *Client) UpdateAuthorizationCodeClient(clientId string, model *Authoriza
 }
 
 func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
-	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
+	req, err := c.prepareRequest("DELETE", fmt.Sprintf("%s%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (c *Client) DeleteAuthorizationCodeClient(clientId string) error {
 }
 
 func (c *Client) GetAuthorizationCodeClient(clientId string) (*AuthorizationCodeClient, error) {
-	req, err := c.prepareRequest("GET", fmt.Sprintf("%s/%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
+	req, err := c.prepareRequest("GET", fmt.Sprintf("%s%s/clients/%s", c.HostURL, c.Config.BasePath, clientId), nil)
 	if err != nil {
 		return nil, err
 	}

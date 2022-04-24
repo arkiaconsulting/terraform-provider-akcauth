@@ -13,7 +13,7 @@ func Test_AuthorizationCodeClient_Get_ShouldPass(t *testing.T) {
 	responseJson := `{"clientId":"client-id","CLIENTNAME":"client-name","AllowedScopes":["s1","s2"],"redirectUris":["r1","r2"],"enabled":true,"requireClientSecret":true,"requirePkce":false,"allowedGrantTypes":["g1"],"allowOfflineAccess":true,"clientSecrets":[{"value":"s1","type":"SharedSecret"},{"value":"s2","type":"SharedSecret"}]}`
 	c := setupWithCallback(200, responseJson, func(req *http.Request) {
 		assert.Equal(t, "GET", req.Method)
-		assert.Equal(t, fmt.Sprintf("%s/api/clients/%s", AnyTestHostUrl, "client-id"), req.URL.String())
+		assert.Equal(t, fmt.Sprintf("%s/my/clients/%s", AnyTestHostUrl, "client-id"), req.URL.String())
 		callbacked = true
 	})
 

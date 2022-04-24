@@ -43,27 +43,33 @@ func Test_Request_BadRequest_ShouldFail(t *testing.T) {
 	c := setup(400, `{"errorMessage":"bad request message"}`)
 
 	_, err := c.doRequest(anyRequest())
-
 	assert.NotNil(t, err)
-	assert.EqualValues(t, fmt.Sprintf("status: 400, body: %s", `{"errorMessage":"bad request message"}`), err.Error())
+
+	cErr, ok := err.(*ClientError)
+	assert.True(t, ok)
+	assert.EqualValues(t, fmt.Sprintf("status: 400, body: %s", `{"errorMessage":"bad request message"}`), cErr.Err.Error())
 }
 
 func Test_Request_Conflict_ShouldFail(t *testing.T) {
 	c := setup(409, `{"errorMessage":"there is a conflict"}`)
 
 	_, err := c.doRequest(anyRequest())
-
 	assert.NotNil(t, err)
-	assert.EqualValues(t, fmt.Sprintf("status: 409, body: %s", `{"errorMessage":"there is a conflict"}`), err.Error())
+
+	cErr, ok := err.(*ClientError)
+	assert.True(t, ok)
+	assert.EqualValues(t, fmt.Sprintf("status: 409, body: %s", `{"errorMessage":"there is a conflict"}`), cErr.Err.Error())
 }
 
 func Test_Request_NotFound_ShouldFail(t *testing.T) {
 	c := setup(404, "")
 
 	_, err := c.doRequest(anyRequest())
-
 	assert.NotNil(t, err)
-	assert.EqualValues(t, fmt.Sprintf("status: 404, body: %s", ""), err.Error())
+
+	cErr, ok := err.(*ClientError)
+	assert.True(t, ok)
+	assert.EqualValues(t, fmt.Sprintf("status: 404, body: %s", ""), cErr.Err.Error())
 }
 
 func Test_Request_NoContent_ShouldPass(t *testing.T) {
