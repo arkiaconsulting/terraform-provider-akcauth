@@ -10,7 +10,8 @@
 			// Use -bullseye variants on local arm64/Apple Silicon.
 			"VARIANT": "1.18-bullseye",
 			// Options
-			"NODE_VERSION": "lts/*"
+			"NODE_VERSION": "lts/*",
+			"TF_VERSION": "1.1.9",
 		}
 	},
 	"runArgs": [

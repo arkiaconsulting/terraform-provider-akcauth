@@ -36,5 +36,4 @@ test:
 testacc: 
 	TF_ACC=1 \
 	AKC_AUTH_BASE_ADDRESS=$(AKC_AUTH_BASE_ADDRESS) \
-	AKC_AUTH_AUDIENCE=$(AKC_AUTH_AUDIENCE) \
 	go test $(TEST) -v -run ^TestAcc $(TESTARGS) -timeout 120m

@@ -11,7 +11,9 @@ echo "alias ll='ls -la'" >> "/root/.bashrc"
 git clone https://github.com/magicmonty/bash-git-prompt.git ~/.bash-git-prompt --depth=1 
 echo "if [ -f \"$HOME/.bash-git-prompt/gitprompt.sh\" ]; then GIT_PROMPT_ONLY_IN_REPO=1 && source $HOME/.bash-git-prompt/gitprompt.sh; fi" >> "/root/.bashrc"
 
-wget https://releases.hashicorp.com/terraform/1.1.9/terraform_1.1.9_linux_amd64.zip
-unzip terraform_1.1.9_linux_amd64.zip
-mv terraform /usr/local/bin/terraform
-rm terraform_1.1.9_linux_amd64.zip
+echo "export AKC_AUTH_BASE_ADDRESS=https://akc-duende.azurewebsites.net" >> "/root/.bashrc"
+echo "export AKC_AUTH_BASE_PATH=/my" >> "/root/.bashrc"
+echo "export AKC_AUTH_AUTHORIZATION_TYPE=client_credentials" >> "/root/.bashrc"
+echo "export AKC_AUTH_CLIENT_ID=client" >> "/root/.bashrc"
+echo "export AKC_AUTH_CLIENT_SECRET=secret" >> "/root/.bashrc"
+echo "export AKC_AUTH_SCOPES=IdentityServerApi" >> "/root/.bashrc"
